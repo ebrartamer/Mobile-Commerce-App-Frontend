@@ -1,4 +1,5 @@
 import axios from 'axios';
+import api from '../../../services/api';
 
 const API_URL = 'http://localhost:5000/api/products/';
 
@@ -10,13 +11,20 @@ const getProducts = async (params) => {
 
 // Öne çıkan ürünleri getir
 const getFeaturedProducts = async (limit) => {
-    const response = await axios.get(`${API_URL}featured?limit=${limit}`);
+    const response = await api.get(`/products/featured?limit=${limit}`);
+    return response.data;
+};
+
+// Ürün detayını getir
+const getProductById = async (id) => {
+    const response = await api.get(`/products/${id}`);
     return response.data;
 };
 
 const productService = {
     getProducts,
-    getFeaturedProducts
+    getFeaturedProducts,
+    getProductById
 };
 
 export default productService;

@@ -4,10 +4,10 @@ import productService from './productService';
 const initialState = {
     products: [],
     featuredProducts: [],
-    product: null,
-    isError: false,
-    isSuccess: false,
+    selectedProduct: null,
     isLoading: false,
+    isSuccess: false,
+    isError: false,
     message: ''
 };
 
@@ -37,15 +37,31 @@ export const getFeaturedProducts = createAsyncThunk(
     }
 );
 
+// Ürün detayını getir
+export const getProductDetails = createAsyncThunk(
+    'products/getDetails',
+    async (id, thunkAPI) => {
+        try {
+            return await productService.getProductById(id);
+        } catch (error) {
+            const message = error.response?.data?.message || error.message;
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
 const productSlice = createSlice({
     name: 'products',
     initialState,
     reducers: {
         reset: (state) => {
             state.isLoading = false;
-            state.isError = false;
             state.isSuccess = false;
+            state.isError = false;
             state.message = '';
+        },
+        clearSelectedProduct: (state) => {
+            state.selectedProduct = null;
         }
     },
     extraReducers: (builder) => {
@@ -77,9 +93,23 @@ const productSlice = createSlice({
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;
+            })
+            // Ürün detayı
+            .addCase(getProductDetails.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(getProductDetails.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.selectedProduct = action.payload;
+            })
+            .addCase(getProductDetails.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
             });
     }
 });
 
-export const { reset } = productSlice.actions;
+export const { reset, clearSelectedProduct } = productSlice.actions;
 export default productSlice.reducer; 
