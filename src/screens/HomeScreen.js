@@ -6,13 +6,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'react-native';
 import { logout, reset } from '../redux/features/auth/authSlice';
 import { getCategories } from '../redux/features/categories/categorySlice';
+import { getFeaturedProducts } from '../redux/features/products/productSlice';
 import ImageSlider from '../components/ImageSlider';
 import ActionBox from '../components/ActionBox';
-
+import Card from '../components/common/Card';
 const HomeScreen = ({ navigation }) => {
     const dispatch = useDispatch();
     const { isAuthenticated } = useSelector((state) => state.auth);
     const { categories } = useSelector((state) => state.categories);
+    const { featuredProducts, isLoading } = useSelector((state) => state.products);
 
     const actionBoxes = [
         {
@@ -67,6 +69,7 @@ const HomeScreen = ({ navigation }) => {
     
     useEffect(() => {
         dispatch(getCategories());
+        dispatch(getFeaturedProducts(10));
     }, [dispatch]);
 
     useEffect(() => {
@@ -123,6 +126,34 @@ const HomeScreen = ({ navigation }) => {
                             />
                         ))}
                     </View>
+
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Öne Çıkan Ürünler</Text>
+                    </View>
+
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.productsScrollView}
+                        contentContainerStyle={styles.productsScrollViewContent}
+                    >
+                        {featuredProducts.map((product) => (
+                            <View key={product._id} style={styles.productCardWrapper}>
+                                <Card
+                                    image={product.images[0]}
+                                    title={product.name}
+                                    brand={product.brand}
+                                    price={product.price}
+                                    discountedPrice={product.discountedPrice}
+                                    rating={product.rating}
+                                    reviewCount={product.numReviews}
+                                    freeShipping={true}
+                                    onPress={() => navigation.navigate('ProductDetail', { productId: product._id })}
+                                    onFavoritePress={() => console.log('Favorilere eklendi:', product._id)}
+                                />
+                            </View>
+                        ))}
+                    </ScrollView>
                 </ScrollView>
             </SafeAreaView>
         </>
@@ -165,6 +196,25 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 16,
         paddingVertical: 8
+    },
+    sectionHeader: {
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+    },
+    productsScrollView: {
+        marginTop: 8,
+    },
+    productsScrollViewContent: {
+        paddingHorizontal: 8,
+    },
+    productCardWrapper: {
+        width: 180,
+        marginHorizontal: 8,
     }
 });
 

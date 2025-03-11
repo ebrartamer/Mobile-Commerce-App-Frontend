@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -6,6 +6,19 @@ const { width } = Dimensions.get('window');
 const ImageSlider = ({ slides, onSlidePress }) => {
     const [activeIndex, setActiveIndex] = useState(0);
     const scrollViewRef = useRef(null);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const nextIndex = (activeIndex + 1) % slides.length;
+            setActiveIndex(nextIndex);
+            scrollViewRef.current?.scrollTo({
+                x: nextIndex * (width - 32),
+                animated: true
+            });
+        }, 2000);
+
+        return () => clearInterval(interval);
+    }, [activeIndex, slides.length]);
 
     const handleScroll = (event) => {
         const slideSize = event.nativeEvent.layoutMeasurement.width;
