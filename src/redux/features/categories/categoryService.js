@@ -8,15 +8,36 @@ const getCategories = async () => {
     return response.data;
 };
 
-// Alt kategorileri getir
-const getSubCategories = async (categoryId) => {
-    const response = await axios.get(`${API_URL}/${categoryId}/subcategories`);
+// Kategori detayını getir
+const getCategoryById = async (id) => {
+    const response = await axios.get(`${API_URL}/${id}`);
+    return response.data;
+};
+
+// Yeni kategori oluştur
+const createCategory = async (categoryData) => {
+    const response = await axios.post(API_URL, categoryData);
+    return response.data;
+};
+
+// Kategori güncelle
+const updateCategory = async (id, categoryData) => {
+    const response = await axios.put(`${API_URL}/${id}`, categoryData);
+    return response.data;
+};
+
+// Kategori sil
+const deleteCategory = async (id) => {
+    const response = await axios.delete(`${API_URL}/${id}`);
     return response.data;
 };
 
 const categoryService = {
     getCategories,
-    getSubCategories,
+    getCategoryById,
+    createCategory,
+    updateCategory,
+    deleteCategory
 };
 
 export default categoryService; 

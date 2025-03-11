@@ -1,59 +1,131 @@
 import React, { useEffect } from 'react';
-import { View, Text, Alert, Image } from 'react-native';
+import { View, Text, Alert, Image, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'react-native';
 import { logout, reset } from '../redux/features/auth/authSlice';
-import { TouchableOpacity } from 'react-native';
+import { getCategories } from '../redux/features/categories/categorySlice';
+import ImageSlider from '../components/ImageSlider';
+import ActionBox from '../components/ActionBox';
 
 const HomeScreen = ({ navigation }) => {
     const dispatch = useDispatch();
-    const { isAuthenticated, isSuccess, isError, message } = useSelector((state) => state.auth);
+    const { isAuthenticated } = useSelector((state) => state.auth);
+    const { categories } = useSelector((state) => state.categories);
+
+    const actionBoxes = [
+        {
+            title: "Süper Fırsatlar",
+            icon: "bolt",
+            color: "#FF6B00",
+            onPress: () => console.log("Süper Fırsatlar")
+        },
+        {
+            title: "Sana Özel",
+            icon: "star",
+            color: "#E81F89",
+            onPress: () => console.log("Sana Özel")
+        },
+        {
+            title: "Markalar",
+            icon: "tags",
+            color: "#4CAF50",
+            onPress: () => console.log("Markalar")
+        },
+        {
+            title: "Çok Satanlar",
+            icon: "fire",
+            color: "#2196F3",
+            onPress: () => console.log("Çok Satanlar")
+        }
+    ];
+
+    const sliderData = [
+        {
+            image: require('../../assets/ActionBox.png'),
+            title: 'Özel Fırsatlar',
+            description: 'En iyi fırsatları kaçırmayın!',
+            linkText: 'Hemen İncele',
+            route: 'Deals'
+        },
+        {
+            image: require('../../assets/blog-photo.png'),
+            title: 'Blog Yazıları',
+            description: 'En son trend ve haberler',
+            linkText: 'Blog\'a Git',
+            route: 'Blog'
+        },
+        {
+            image: require('../../assets/FoodImage.png'),
+            title: 'Lezzetli Yemekler',
+            description: 'En iyi restoranlardan özel menüler',
+            linkText: 'Sipariş Ver',
+            route: 'Food'
+        }
+    ];
     
     useEffect(() => {
-        // Çıkış yapıldığında login sayfasına yönlendir
+        dispatch(getCategories());
+    }, [dispatch]);
+
+    useEffect(() => {
         if (!isAuthenticated) {
             navigation.replace('Login');
         }
-        
         return () => {
             dispatch(reset());
         };
     }, [isAuthenticated, navigation, dispatch]);
+
+    const handleSlidePress = (slide) => {
+        navigation.navigate(slide.route);
+    };
     
-    const handleLogout = () => {
-        Alert.alert(
-            'Çıkış Yap',
-            'Hesabınızdan çıkış yapmak istediğinize emin misiniz?',
-            [
-                {
-                    text: 'İptal',
-                    style: 'cancel'
-                },
-                {
-                    text: 'Çıkış Yap',
-                    onPress: () => {
-                        dispatch(logout());
-                    },
-                    style: 'destructive'
-                }
-            ]
-        );
+    const handleCategoryPress = (category) => {
+        console.log('Seçilen kategori:', category.name);
     };
     
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <View style={styles.container}> 
-               
-                
-                <View style={styles.content}>
-                    <Icon name="home" size={50} color="#ff6b00" />
-                    <Text style={styles.welcomeText}>Hoş Geldiniz!</Text>
-                    <Text style={styles.infoText}>Bu uygulama bir e-ticaret uygulaması prototipidir.</Text>
-                </View>
-            </View>
-        </SafeAreaView>
+        <>
+            <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+            <SafeAreaView style={styles.safeArea} edges={['right', 'left']}>
+                <ScrollView style={styles.container}>
+                    <View style={styles.categoriesWrapper}>
+                        <ScrollView 
+                            horizontal 
+                            showsHorizontalScrollIndicator={false}
+                            style={styles.categoriesContainer}
+                            contentContainerStyle={styles.categoriesContentContainer}
+                        >
+                            {categories.map((category) => (
+                                <TouchableOpacity
+                                    key={category._id}
+                                    style={styles.categoryItem}
+                                    onPress={() => handleCategoryPress(category)}
+                                >
+                                    <Text style={styles.categoryName}>{category.name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                    
+                    <ImageSlider slides={sliderData} onSlidePress={handleSlidePress} />
+
+                    <View style={styles.actionBoxContainer}>
+                        {actionBoxes.map((box, index) => (
+                            <ActionBox
+                                key={index}
+                                title={box.title}
+                                icon={box.icon}
+                                color={box.color}
+                                onPress={box.onPress}
+                            />
+                        ))}
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
+        </>
     );
 };
 
@@ -63,46 +135,36 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff'
     },
     container: {
-        flex: 1
+        flex: 1,
+        backgroundColor: '#fff'
     },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20,
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee'
+    categoriesWrapper: {
+        paddingTop: StatusBar.currentHeight || 0
     },
-    logo: {
-        width: 60,
-        height: 60
+    categoriesContainer: {
+        height: 80
     },
-    logoutButton: {
-        flexDirection: 'row',
+    categoriesContentContainer: {
+        paddingHorizontal: 10,
         alignItems: 'center'
     },
-    logoutText: {
-        marginLeft: 5,
-        color: 'red',
+    categoryItem: {
+        alignItems: 'center',
+        marginHorizontal: 8,
+        justifyContent: 'center',
+        height: '100%'
+    },
+    categoryName: {
+        fontSize: 12,
+        textAlign: 'center',
         fontWeight: '500'
     },
-    content: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    welcomeText: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginTop: 20,
-        marginBottom: 10,
-        color: '#333'
-    },
-    infoText: {
-        fontSize: 16,
-        color: '#666',
-        textAlign: 'center'
+    actionBoxContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 8
     }
 });
 
