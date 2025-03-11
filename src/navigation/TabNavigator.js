@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import CategoriesScreen from '../screens/CategoriesScreen';
 import Header from '../components/layout/Header';
 
 const Tab = createBottomTabNavigator();
@@ -53,7 +54,10 @@ const TabNavigator = () => {
         name="Ana Sayfa" 
         component={HomeScreen}
       />
-     
+      <Tab.Screen 
+        name="Kategoriler" 
+        component={CategoriesScreen}
+      />
       <Tab.Screen 
         name="Profil" 
         component={ProfileScreen}
