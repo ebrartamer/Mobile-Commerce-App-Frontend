@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useDispatch, useSelector } from 'react-redux';
+import { addToFavorites, removeFromFavorites, checkFavoriteStatus } from '../../redux/features/favorites/favoritesSlice';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 32) / 2; // 2 kart yan yana
 
 const Card = ({
+    productId,
     image,
     title,
     brand,
@@ -15,15 +18,46 @@ const Card = ({
     rating,
     reviewCount,
     freeShipping,
-    onPress,
-    onFavoritePress,
-    isFavorite = false
+    onPress
 }) => {
+    const dispatch = useDispatch();
+    const [isFavorite, setIsFavorite] = useState(false);
+    const { isLoading } = useSelector((state) => state.favorites);
+
+    useEffect(() => {
+        const checkFavorite = async () => {
+            try {
+                const result = await dispatch(checkFavoriteStatus(productId)).unwrap();
+                setIsFavorite(result.isFavorite);
+            } catch (error) {
+                console.error('Favori durumu kontrol edilirken hata:', error);
+            }
+        };
+
+        if (productId) {
+            checkFavorite();
+        }
+    }, [dispatch, productId]);
+
+    const handleFavoritePress = async () => {
+        try {
+            if (isFavorite) {
+                await dispatch(removeFromFavorites(productId)).unwrap();
+                setIsFavorite(false);
+            } else {
+                await dispatch(addToFavorites(productId)).unwrap();
+                setIsFavorite(true);
+            }
+        } catch (error) {
+            console.error('Favori işlemi sırasında hata:', error);
+        }
+    };
+
     const calculateDiscountRate = () => {
         if (price && discountedPrice) {
             return Math.round(((price - discountedPrice) / price) * 100);
         }
-        return 0;
+        return discountRate || 0;
     };
 
     return (
@@ -31,7 +65,8 @@ const Card = ({
             {/* Favori Butonu */}
             <TouchableOpacity 
                 style={styles.favoriteButton} 
-                onPress={onFavoritePress}
+                onPress={handleFavoritePress}
+                disabled={isLoading}
                 hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
             >
                 <Icon 
@@ -42,10 +77,14 @@ const Card = ({
             </TouchableOpacity>
 
             {/* Ürün Görseli */}
-            <Image source={{ uri: image }} style={styles.image} />
+            <Image 
+                source={typeof image === 'string' ? { uri: image } : image} 
+                style={styles.image}
+                resizeMode="cover"
+            />
 
             {/* İndirim Etiketi */}
-            {discountRate > 0 && (
+            {(discountedPrice || discountRate) > 0 && (
                 <View style={styles.discountBadge}>
                     <Text style={styles.discountText}>%{calculateDiscountRate()}</Text>
                 </View>

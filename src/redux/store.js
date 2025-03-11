@@ -2,13 +2,15 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './features/auth/authSlice';
 import categoryReducer from './features/categories/categorySlice';
 import productReducer from './features/products/productSlice';
+import favoritesReducer from './features/favorites/favoritesSlice';
 
 // Redux store
 const store = configureStore({
   reducer: {
     auth: authReducer,
     categories: categoryReducer,
-    products: productReducer
+    products: productReducer,
+    favorites: favoritesReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

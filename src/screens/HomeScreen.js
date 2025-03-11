@@ -140,6 +140,7 @@ const HomeScreen = ({ navigation }) => {
                         {featuredProducts.map((product) => (
                             <View key={product._id} style={styles.productCardWrapper}>
                                 <Card
+                                    productId={product._id}
                                     image={product.images[0]}
                                     title={product.name}
                                     brand={product.brand}
@@ -149,7 +150,6 @@ const HomeScreen = ({ navigation }) => {
                                     reviewCount={product.numReviews}
                                     freeShipping={true}
                                     onPress={() => navigation.navigate('ProductDetail', { productId: product._id })}
-                                    onFavoritePress={() => console.log('Favorilere eklendi:', product._id)}
                                 />
                             </View>
                         ))}
