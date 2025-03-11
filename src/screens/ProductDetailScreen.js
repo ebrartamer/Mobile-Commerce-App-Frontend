@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductDetails } from '../redux/features/products/productSlice';
+import { addToFavorites, removeFromFavorites, checkFavoriteStatus } from '../redux/features/favorites/favoritesSlice';
 
 const { width } = Dimensions.get('window');
 
@@ -22,6 +23,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
   const dispatch = useDispatch();
   const { productId } = route.params;
   const { selectedProduct, isLoading, error } = useSelector((state) => state.products);
+  const { favorites } = useSelector((state) => state.favorites);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -31,8 +33,11 @@ const ProductDetailScreen = ({ route, navigation }) => {
   useEffect(() => {
     if (productId) {
       dispatch(getProductDetails(productId));
+      // Favori durumunu kontrol et
+      const isProductFavorite = favorites.some(fav => fav._id === productId);
+      setIsFavorite(isProductFavorite);
     }
-  }, [dispatch, productId]);
+  }, [dispatch, productId, favorites]);
 
   const handleShare = async () => {
     try {
@@ -60,7 +65,11 @@ const ProductDetailScreen = ({ route, navigation }) => {
   };
 
   const handleFavorite = () => {
-    setIsFavorite(!isFavorite);
+    if (isFavorite) {
+      dispatch(removeFromFavorites(productId));
+    } else {
+      dispatch(addToFavorites(productId));
+    }
   };
 
   const handleColorSelect = (color) => {

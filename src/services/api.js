@@ -33,7 +33,12 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     
     // Token süresi dolmuşsa ve bu istek token yenileme isteği değilse
-    if (error.response?.status === 401 && !originalRequest._retry && error.response?.data?.message?.includes('Oturum süresi doldu')) {
+    if (
+      error.response?.status === 401 && 
+      !originalRequest._retry && 
+      (error.response?.data?.message?.includes('Oturum süresi doldu') || 
+       error.response?.data?.message?.includes('jwt expired'))
+    ) {
       originalRequest._retry = true;
       
       try {
@@ -48,15 +53,22 @@ api.interceptors.response.use(
         // Refresh token ile yeni token al
         const response = await axios.post(`${API_URL}/users/refresh`, { refreshToken });
         
-        // Yeni token'ları kaydet
-        await AsyncStorage.setItem('accessToken', response.data.accessToken);
-        
-        // Orijinal isteği yeni token ile tekrar gönder
-        originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
-        return api(originalRequest);
+        if (response.data.accessToken) {
+          // Yeni token'ları kaydet
+          await AsyncStorage.setItem('accessToken', response.data.accessToken);
+          
+          // Tüm axios isteklerinin default header'ını güncelle
+          api.defaults.headers.common['Authorization'] = `Bearer ${response.data.accessToken}`;
+          
+          // Orijinal isteği yeni token ile tekrar gönder
+          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+          return api(originalRequest);
+        }
       } catch (refreshError) {
         // Token yenileme başarısız olursa kullanıcıyı çıkış yaptır
         await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
+        // Kullanıcıyı login sayfasına yönlendir
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }

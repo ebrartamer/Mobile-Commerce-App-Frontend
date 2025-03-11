@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, reset } from '../redux/features/auth/authSlice';
+import { Ionicons } from '@expo/vector-icons';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -110,13 +111,25 @@ const LoginScreen = ({ navigation }) => {
           
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Şifre</Text>
-            <TextInput 
-              style={[styles.input, formErrors.password ? styles.inputError : null]}
-              placeholder="Şifrenizi giriniz"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput 
+                style={[styles.passwordInput, formErrors.password ? styles.inputError : null]}
+                placeholder="Şifrenizi giriniz"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity 
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons 
+                  name={showPassword ? 'eye-off' : 'eye'} 
+                  size={24} 
+                  color="#666"
+                />
+              </TouchableOpacity>
+            </View>
             {formErrors.password ? (
               <Text style={styles.errorText}>{formErrors.password}</Text>
             ) : null}
@@ -253,6 +266,22 @@ const styles = StyleSheet.create({
     color: '#ff6b00',
     fontSize: 14,
     fontWeight: '500',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 10,
+    fontSize: 16,
+    borderWidth: 0,
+  },
+  eyeIcon: {
+    padding: 10,
   },
 });
 

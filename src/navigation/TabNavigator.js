@@ -5,7 +5,7 @@ import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import CategoriesScreen from '../screens/CategoriesScreen';
 import Header from '../components/layout/Header';
-
+import FavoritesScreen from '../screens/FavoritesScreen';
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
@@ -61,6 +61,10 @@ const TabNavigator = () => {
       <Tab.Screen 
         name="Profil" 
         component={ProfileScreen}
+      />
+      <Tab.Screen 
+        name="Favoriler" 
+        component={FavoritesScreen}
       />
       {/* Diğer tab ekranları eklenecek */}
     </Tab.Navigator>
