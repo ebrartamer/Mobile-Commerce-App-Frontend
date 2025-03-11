@@ -6,10 +6,13 @@ const { width } = Dimensions.get('window');
 const boxWidth = (width - 32) / 4; // 4 kutu yan yana ve toplam 32px padding
 
 const ActionBox = ({ title, icon, color, onPress }) => {
+    // Gelen rengin daha açık tonunu oluştur
+    const lightColor = `${color}33`; // 33 hex değeri %20 opaklık verir
+    
     return (
         <TouchableOpacity style={styles.box} onPress={onPress}>
-            <View style={[styles.iconContainer, { backgroundColor: color }]}>
-                <Icon name={icon} size={24} color="#fff" />
+            <View style={[styles.iconContainer, { backgroundColor: lightColor , shadowColor: color }]}>
+                <Icon name={icon} size={24} color={color} />
             </View>
             <Text style={styles.title} numberOfLines={1}>{title}</Text>
         </TouchableOpacity>
@@ -30,7 +33,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 3,
-        shadowColor: '#000',
+
         shadowOffset: {
             width: 0,
             height: 2,
@@ -47,4 +50,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default ActionBox; 
+export default ActionBox;

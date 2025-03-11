@@ -3,6 +3,7 @@ import authReducer from './features/auth/authSlice';
 import categoryReducer from './features/categories/categorySlice';
 import productReducer from './features/products/productSlice';
 import favoritesReducer from './features/favorites/favoritesSlice';
+import errorReducer from './features/error/errorSlice';
 
 // Redux store
 const store = configureStore({
@@ -10,7 +11,8 @@ const store = configureStore({
     auth: authReducer,
     categories: categoryReducer,
     products: productReducer,
-    favorites: favoritesReducer
+    favorites: favoritesReducer,
+    error: errorReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'rea
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToFavorites, removeFromFavorites, checkFavoriteStatus } from '../../redux/features/favorites/favoritesSlice';
+import { showError, showSuccess } from '../../redux/features/error/errorSlice';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 32) / 2; // 2 kart yan yana
@@ -44,12 +45,22 @@ const Card = ({
             if (isFavorite) {
                 await dispatch(removeFromFavorites(productId)).unwrap();
                 setIsFavorite(false);
+                dispatch(showSuccess({ message: 'Ürün favorilerden çıkarıldı' }));
             } else {
                 await dispatch(addToFavorites(productId)).unwrap();
                 setIsFavorite(true);
+                dispatch(showSuccess({ message: 'Ürün favorilere eklendi' }));
             }
         } catch (error) {
-            console.error('Favori işlemi sırasında hata:', error);
+            const errorMessage = error.response?.data?.message || 'Bir hata oluştu';
+            
+            if (error.response?.status === 401) {
+                dispatch(showError({ message: 'Lütfen giriş yapın' }));
+            } else if (error.response?.status === 403) {
+                dispatch(showError({ message: 'Oturumunuz sona erdi. Lütfen tekrar giriş yapın' }));
+            } else {
+                dispatch(showError({ message: errorMessage }));
+            }
         }
     };
 
