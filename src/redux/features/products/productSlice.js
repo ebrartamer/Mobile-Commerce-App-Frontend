@@ -5,6 +5,7 @@ const initialState = {
     products: [],
     featuredProducts: [],
     categoryProducts: [],
+    discountedProducts: [],
     selectedProduct: null,
     isLoading: false,
     isSuccess: false,
@@ -102,6 +103,19 @@ export const addProductReview = createAsyncThunk(
     async ({ productId, reviewData }, thunkAPI) => {
         try {
             return await productService.addProductReview(productId, reviewData);
+        } catch (error) {
+            const message = error.response?.data?.message || error.message;
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
+// İndirimli ürünleri getir
+export const getDiscountedProducts = createAsyncThunk(
+    'products/getDiscounted',
+    async (limit, thunkAPI) => {
+        try {
+            return await productService.getDiscountedProducts(limit);
         } catch (error) {
             const message = error.response?.data?.message || error.message;
             return thunkAPI.rejectWithValue(message);
@@ -231,6 +245,20 @@ const productSlice = createSlice({
                 state.isSuccess = true;
             })
             .addCase(addProductReview.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            // İndirimli ürünler
+            .addCase(getDiscountedProducts.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(getDiscountedProducts.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.discountedProducts = action.payload;
+            })
+            .addCase(getDiscountedProducts.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;

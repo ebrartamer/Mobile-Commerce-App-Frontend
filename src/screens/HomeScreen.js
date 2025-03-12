@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'react-native';
 import { logout, reset } from '../redux/features/auth/authSlice';
 import { getCategories } from '../redux/features/categories/categorySlice';
-import { getFeaturedProducts, getBrands } from '../redux/features/products/productSlice';
+import { getFeaturedProducts, getBrands, getDiscountedProducts } from '../redux/features/products/productSlice';
 import ImageSlider from '../components/ImageSlider';
 import ActionBox from '../components/ActionBox';
 import Card from '../components/common/Card';
@@ -15,29 +15,9 @@ const HomeScreen = ({ navigation }) => {
     const dispatch = useDispatch();
     const { isAuthenticated } = useSelector((state) => state.auth);
     const { categories } = useSelector((state) => state.categories);
-    const { featuredProducts, brands, isLoading } = useSelector((state) => state.products);
+    const { featuredProducts, brands, discountedProducts, isLoading } = useSelector((state) => state.products);
 
-    // Örnek marka logoları - API'den gelen markalara logo eklemek için
-    const brandLogos = {
-        'Apple': 'https://www.apple.com/ac/structured-data/images/knowledge_graph_logo.png',
-        'Samsung': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Samsung_Logo.svg/2560px-Samsung_Logo.svg.png',
-        'Nike': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/1200px-Logo_NIKE.svg.png',
-        'Adidas': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/2560px-Adidas_Logo.svg.png',
-        'Zara': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Zara_Logo.svg/2560px-Zara_Logo.svg.png',
-        'H&M': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/H%26M-Logo.svg/2560px-H%26M-Logo.svg.png',
-        'default': 'https://via.placeholder.com/150'
-    };
-
-    // Marka verilerini hazırla
-    const getBrandData = () => {
-        if (!brands || brands.length === 0) return [];
-        
-        return brands.slice(0, 10).map((brand, index) => ({
-            id: index + 1,
-            name: brand,
-            logo: brandLogos[brand] || brandLogos.default
-        }));
-    };
+    const defaultLogo = 'https://coffective.com/wp-content/uploads/2018/06/default-featured-image.png.jpg';
 
     const actionBoxes = [
         {
@@ -106,6 +86,7 @@ const HomeScreen = ({ navigation }) => {
         dispatch(getCategories());
         dispatch(getFeaturedProducts(10));
         dispatch(getBrands());
+        dispatch(getDiscountedProducts(10));
     }, [dispatch]);
 
     useEffect(() => {
@@ -174,6 +155,7 @@ const HomeScreen = ({ navigation }) => {
                         ))}
                     </View>
 
+
                     <View style={styles.sectionHeader}>
                         <Text style={styles.sectionTitle}>Öne Çıkan Ürünler</Text>
                     </View>
@@ -223,25 +205,80 @@ const HomeScreen = ({ navigation }) => {
                             style={styles.brandsScrollView}
                             contentContainerStyle={styles.brandsScrollViewContent}
                         >
-                            {getBrandData().map((brand) => (
+                            {brands && brands.length > 0 ? brands.slice(0, 10).map((brand, index) => (
                                 <TouchableOpacity
-                                    key={brand.id}
+                                    key={index}
                                     style={styles.brandItem}
                                     onPress={() => handleBrandPress(brand)}
                                 >
                                     <View style={styles.brandLogoContainer}>
                                         <Image 
-                                            source={{ uri: brand.logo }} 
+                                            source={{ uri: brand.logo || defaultLogo }} 
                                             style={styles.brandLogo}
                                             resizeMode="contain"
                                         />
                                     </View>
                                     <Text style={styles.brandName}>{brand.name}</Text>
                                 </TouchableOpacity>
-                            ))}
+                            )) : (
+                                <Text style={styles.noDataText}>Marka bulunamadı</Text>
+                            )}
                         </ScrollView>
                     )}
+
+                    <View style={styles.discountedContainer}>
+                        <View style={styles.discountedSection}>
+                            <View style={styles.discountedHeader}>
+                                <Icon name="bolt" size={20} color="#fff" />
+                                <Text style={styles.discountedTitle}>Süper Fırsatlar</Text>
+                                <TouchableOpacity 
+                                    onPress={() => navigation.navigate('CategoryProducts', { 
+                                        categoryName: 'Süper Fırsatlar',
+                                        isSpecialOffer: true
+                                    })}
+                                >
+                                    <Text style={styles.seeAllText}>Tümünü Gör</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {isLoading ? (
+                                <View style={styles.loaderContainer}>
+                                    <ActivityIndicator size="large" color="#fff" />
+                                </View>
+                            ) : (
+                                <ScrollView
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                    style={styles.discountedScrollView}
+                                    contentContainerStyle={styles.discountedScrollViewContent}
+                                >
+                                    {discountedProducts && discountedProducts.length > 0 ? (
+                                        discountedProducts.map((product) => (
+                                            <View key={product._id} style={styles.productCardWrapper}>
+                                                <Card
+                                                    productId={product._id}
+                                                    image={product.images[0]}
+                                                    title={product.name}
+                                                    brand={product.brand}
+                                                    price={product.price}
+                                                    discountedPrice={product.discountedPrice}
+                                                    rating={product.rating}
+                                                    reviewCount={product.numReviews}
+                                                    freeShipping={true}
+                                                    onPress={() => navigation.navigate('ProductDetail', { productId: product._id })}
+                                                />
+                                            </View>
+                                        ))
+                                    ) : (
+                                        <Text style={styles.noDiscountedText}>İndirimli ürün bulunamadı</Text>
+                                    )}
+                                </ScrollView>
+                            )}
+                        </View>
+                    </View>
+
                 </ScrollView>
+
             </SafeAreaView>
         </>
     );
@@ -341,7 +378,59 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontWeight: '500',
         color: '#333'
-    }
+    },
+    noDataText: {
+        fontSize: 14,
+        color: '#666',
+        fontStyle: 'italic',
+        textAlign: 'center',
+        marginVertical: 16,
+        width: '100%',
+        paddingHorizontal: 16
+    },
+    discountedContainer: {
+        marginVertical: 8,
+    },
+    discountedSection: {
+        backgroundColor: '#FF6B00',
+        paddingVertical: 16,
+        borderRadius: 10,
+        marginHorizontal: 10,
+    },
+    discountedHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        marginBottom: 12,
+    },
+    discountedTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#fff',
+        flex: 1,
+        marginLeft: 8,
+    },
+    seeAllText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    discountedScrollView: {
+        marginTop: 8,
+    },
+    discountedScrollViewContent: {
+        paddingHorizontal: 8,
+    },
+    noDiscountedText: {
+        fontSize: 14,
+        color: '#fff',
+        fontStyle: 'italic',
+        textAlign: 'center',
+        marginVertical: 16,
+        width: 300,
+        paddingHorizontal: 16,
+    },
 });
 
 export default HomeScreen;

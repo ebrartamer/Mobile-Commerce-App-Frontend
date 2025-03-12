@@ -15,6 +15,21 @@ const getFeaturedProducts = async (limit) => {
     return response.data;
 };
 
+// İndirimli ürünleri getir
+const getDiscountedProducts = async (limit) => {
+  try {
+    // İndirimli ürünleri getirmek için discountPercentage parametresi kullanılıyor
+    const response = await api.get(`/products?discountPercentage[gt]=0&limit=${limit}`);
+    return response.data.products;
+  } catch (error) {
+    const message = 
+      error.response?.data?.message ||
+      error.message ||
+      'İndirimli ürünler alınırken bir hata oluştu';
+    throw new Error(message);
+  }
+};
+
 // Ürün detayını getir
 const getProductById = async (id) => {
     const response = await api.get(`/products/${id}`);
@@ -44,7 +59,7 @@ const searchProducts = async (searchQuery) => {
 // Tüm markaları getir
 const getBrands = async () => {
   try {
-    const response = await api.get('/management/brands');
+    const response = await api.get('/products/brands');
     return response.data;
   } catch (error) {
     const message = 
@@ -76,7 +91,8 @@ const productService = {
     getProductsByCategory,
     searchProducts,
     getBrands,
-    addProductReview
+    addProductReview,
+    getDiscountedProducts
 };
 
 export default productService;
