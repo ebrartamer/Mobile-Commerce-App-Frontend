@@ -1,45 +1,80 @@
-import React, { useEffect } from 'react';
-import { View, Text, Alert, Image, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Alert, Image, ScrollView, TouchableOpacity, StatusBar, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'react-native';
 import { logout, reset } from '../redux/features/auth/authSlice';
 import { getCategories } from '../redux/features/categories/categorySlice';
-import { getFeaturedProducts } from '../redux/features/products/productSlice';
+import { getFeaturedProducts, getBrands } from '../redux/features/products/productSlice';
 import ImageSlider from '../components/ImageSlider';
 import ActionBox from '../components/ActionBox';
 import Card from '../components/common/Card';
+
 const HomeScreen = ({ navigation }) => {
     const dispatch = useDispatch();
     const { isAuthenticated } = useSelector((state) => state.auth);
     const { categories } = useSelector((state) => state.categories);
-    const { featuredProducts, isLoading } = useSelector((state) => state.products);
+    const { featuredProducts, brands, isLoading } = useSelector((state) => state.products);
+
+    // Örnek marka logoları - API'den gelen markalara logo eklemek için
+    const brandLogos = {
+        'Apple': 'https://www.apple.com/ac/structured-data/images/knowledge_graph_logo.png',
+        'Samsung': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Samsung_Logo.svg/2560px-Samsung_Logo.svg.png',
+        'Nike': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/1200px-Logo_NIKE.svg.png',
+        'Adidas': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/2560px-Adidas_Logo.svg.png',
+        'Zara': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Zara_Logo.svg/2560px-Zara_Logo.svg.png',
+        'H&M': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/H%26M-Logo.svg/2560px-H%26M-Logo.svg.png',
+        'default': 'https://via.placeholder.com/150'
+    };
+
+    // Marka verilerini hazırla
+    const getBrandData = () => {
+        if (!brands || brands.length === 0) return [];
+        
+        return brands.slice(0, 10).map((brand, index) => ({
+            id: index + 1,
+            name: brand,
+            logo: brandLogos[brand] || brandLogos.default
+        }));
+    };
 
     const actionBoxes = [
         {
             title: "Süper Fırsatlar",
             icon: "bolt",
             color: "#FF6B00",
-            onPress: () => console.log("Süper Fırsatlar")
+            onPress: () => navigation.navigate('CategoryProducts', { 
+                categoryName: 'Süper Fırsatlar',
+                isSpecialOffer: true
+            })
         },
         {
             title: "Sana Özel",
             icon: "star",
             color: "#E81F89",
-            onPress: () => console.log("Sana Özel")
+            onPress: () => navigation.navigate('CategoryProducts', { 
+                categoryName: 'Sana Özel',
+                isPersonalized: true
+            })
         },
         {
             title: "Markalar",
             icon: "tags",
             color: "#4CAF50",
-            onPress: () => console.log("Markalar")
+            onPress: () => navigation.navigate('CategoryProducts', { 
+                categoryName: 'Tüm Markalar',
+                isBrands: true
+            })
         },
         {
             title: "Çok Satanlar",
             icon: "fire",
             color: "#2196F3",
-            onPress: () => console.log("Çok Satanlar")
+            onPress: () => navigation.navigate('CategoryProducts', { 
+                categoryName: 'Çok Satanlar',
+                isBestSeller: true
+            })
         }
     ];
 
@@ -70,6 +105,7 @@ const HomeScreen = ({ navigation }) => {
     useEffect(() => {
         dispatch(getCategories());
         dispatch(getFeaturedProducts(10));
+        dispatch(getBrands());
     }, [dispatch]);
 
     useEffect(() => {
@@ -89,6 +125,14 @@ const HomeScreen = ({ navigation }) => {
         navigation.navigate('CategoryProducts', { 
             categoryId: category._id, 
             categoryName: category.name 
+        });
+    };
+
+    const handleBrandPress = (brand) => {
+        navigation.navigate('CategoryProducts', { 
+            categoryName: `${brand.name} Ürünleri`,
+            brandId: brand.id,
+            isBrand: true
         });
     };
     
@@ -134,29 +178,69 @@ const HomeScreen = ({ navigation }) => {
                         <Text style={styles.sectionTitle}>Öne Çıkan Ürünler</Text>
                     </View>
 
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        style={styles.productsScrollView}
-                        contentContainerStyle={styles.productsScrollViewContent}
-                    >
-                        {featuredProducts.map((product) => (
-                            <View key={product._id} style={styles.productCardWrapper}>
-                                <Card
-                                    productId={product._id}
-                                    image={product.images[0]}
-                                    title={product.name}
-                                    brand={product.brand}
-                                    price={product.price}
-                                    discountedPrice={product.discountedPrice}
-                                    rating={product.rating}
-                                    reviewCount={product.numReviews}
-                                    freeShipping={true}
-                                    onPress={() => navigation.navigate('ProductDetail', { productId: product._id })}
-                                />
-                            </View>
-                        ))}
-                    </ScrollView>
+                    {isLoading ? (
+                        <View style={styles.loaderContainer}>
+                            <ActivityIndicator size="large" color="#ff6b00" />
+                        </View>
+                    ) : (
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            style={styles.productsScrollView}
+                            contentContainerStyle={styles.productsScrollViewContent}
+                        >
+                            {featuredProducts.map((product) => (
+                                <View key={product._id} style={styles.productCardWrapper}>
+                                    <Card
+                                        productId={product._id}
+                                        image={product.images[0]}
+                                        title={product.name}
+                                        brand={product.brand}
+                                        price={product.price}
+                                        discountedPrice={product.discountedPrice}
+                                        rating={product.rating}
+                                        reviewCount={product.numReviews}
+                                        freeShipping={true}
+                                        onPress={() => navigation.navigate('ProductDetail', { productId: product._id })}
+                                    />
+                                </View>
+                            ))}
+                        </ScrollView>
+                    )}
+
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Popüler Markalar</Text>
+                    </View>
+
+                    {isLoading ? (
+                        <View style={styles.loaderContainer}>
+                            <ActivityIndicator size="large" color="#ff6b00" />
+                        </View>
+                    ) : (
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            style={styles.brandsScrollView}
+                            contentContainerStyle={styles.brandsScrollViewContent}
+                        >
+                            {getBrandData().map((brand) => (
+                                <TouchableOpacity
+                                    key={brand.id}
+                                    style={styles.brandItem}
+                                    onPress={() => handleBrandPress(brand)}
+                                >
+                                    <View style={styles.brandLogoContainer}>
+                                        <Image 
+                                            source={{ uri: brand.logo }} 
+                                            style={styles.brandLogo}
+                                            resizeMode="contain"
+                                        />
+                                    </View>
+                                    <Text style={styles.brandName}>{brand.name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    )}
                 </ScrollView>
             </SafeAreaView>
         </>
@@ -209,6 +293,11 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#333',
     },
+    loaderContainer: {
+        height: 200,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
     productsScrollView: {
         marginTop: 8,
     },
@@ -218,6 +307,40 @@ const styles = StyleSheet.create({
     productCardWrapper: {
         width: 180,
         marginHorizontal: 8,
+    },
+    brandsScrollView: {
+        marginTop: 8,
+        marginBottom: 16
+    },
+    brandsScrollViewContent: {
+        paddingHorizontal: 16,
+    },
+    brandItem: {
+        alignItems: 'center',
+        marginRight: 24,
+        width: 80
+    },
+    brandLogoContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#f9f9f9',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: '#eee',
+        padding: 10
+    },
+    brandLogo: {
+        width: '100%',
+        height: '100%'
+    },
+    brandName: {
+        fontSize: 12,
+        textAlign: 'center',
+        fontWeight: '500',
+        color: '#333'
     }
 });
 

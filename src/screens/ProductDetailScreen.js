@@ -10,12 +10,13 @@ import {
   Share,
   ActivityIndicator,
   FlatList,
-  Alert
+  Alert,
+  TextInput
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useDispatch, useSelector } from 'react-redux';
-import { getProductDetails } from '../redux/features/products/productSlice';
+import { getProductDetails, addProductReview } from '../redux/features/products/productSlice';
 import { addToFavorites, removeFromFavorites, checkFavoriteStatus } from '../redux/features/favorites/favoritesSlice';
 import { addToCart } from '../redux/features/cart/cartSlice';
 
@@ -24,13 +25,17 @@ const { width } = Dimensions.get('window');
 const ProductDetailScreen = ({ route, navigation }) => {
   const dispatch = useDispatch();
   const { productId } = route.params;
-  const { selectedProduct, isLoading, error } = useSelector((state) => state.products);
+  const { selectedProduct, isLoading, error, message } = useSelector((state) => state.products);
   const { favorites } = useSelector((state) => state.favorites);
+  const { user } = useSelector((state) => state.auth);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   useEffect(() => {
     if (productId) {
@@ -127,6 +132,30 @@ const ProductDetailScreen = ({ route, navigation }) => {
     if (variant) {
       setSelectedVariant(variant);
     }
+  };
+
+  const submitReview = () => {
+    if (!rating || !comment) {
+      Alert.alert('Hata', 'Lütfen puan ve yorumunuzu giriniz');
+      return;
+    }
+    
+    dispatch(addProductReview({ 
+      productId, 
+      reviewData: { rating, comment } 
+    }))
+      .unwrap()
+      .then(() => {
+        Alert.alert('Başarılı', 'Yorumunuz başarıyla eklendi');
+        setComment('');
+        setRating(5);
+        setShowReviewForm(false);
+        // Ürün detaylarını yeniden yükle
+        dispatch(getProductDetails(productId));
+      })
+      .catch((error) => {
+        Alert.alert('Hata', error || 'Yorum eklenirken bir hata oluştu');
+      });
   };
 
   if (isLoading) {
@@ -305,6 +334,90 @@ const ProductDetailScreen = ({ route, navigation }) => {
                 </View>
               ))}
             </View>
+          )}
+        </View>
+
+        {/* Yorumlar Bölümü */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Değerlendirmeler</Text>
+            {user && (
+              <TouchableOpacity 
+                style={styles.addReviewButton}
+                onPress={() => setShowReviewForm(!showReviewForm)}
+              >
+                <Text style={styles.addReviewButtonText}>
+                  {showReviewForm ? 'İptal' : 'Değerlendirme Yap'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          {showReviewForm && (
+            <View style={styles.reviewForm}>
+              <Text style={styles.reviewFormLabel}>Puanınız:</Text>
+              <View style={styles.ratingContainer}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <TouchableOpacity
+                    key={star}
+                    onPress={() => setRating(star)}
+                    style={styles.starButton}
+                  >
+                    <Icon
+                      name={star <= rating ? 'star' : 'star-o'}
+                      size={24}
+                      color="#FFD700"
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <Text style={styles.reviewFormLabel}>Yorumunuz:</Text>
+              <TextInput
+                style={styles.reviewInput}
+                value={comment}
+                onChangeText={setComment}
+                placeholder="Ürün hakkında düşüncelerinizi yazın..."
+                multiline
+                numberOfLines={4}
+              />
+              
+              <TouchableOpacity
+                style={styles.submitReviewButton}
+                onPress={submitReview}
+              >
+                <Text style={styles.submitReviewButtonText}>Gönder</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          
+          {selectedProduct?.reviews && selectedProduct.reviews.length > 0 ? (
+            selectedProduct.reviews.map((review, index) => (
+              <View key={index} style={styles.reviewItem}>
+                <View style={styles.reviewHeader}>
+                  <Text style={styles.reviewerName}>{review.name}</Text>
+                  <View style={styles.reviewRating}>
+                    {[...Array(5)].map((_, i) => (
+                      <Icon
+                        key={i}
+                        name={i < review.rating ? 'star' : 'star-o'}
+                        size={14}
+                        color="#FFD700"
+                        style={{ marginRight: 2 }}
+                      />
+                    ))}
+                  </View>
+                </View>
+                <Text style={styles.reviewDate}>
+                  {new Date(review.createdAt).toLocaleDateString()}
+                </Text>
+                <Text style={styles.reviewComment}>{review.comment}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.noReviewsText}>
+              Bu ürün için henüz değerlendirme bulunmuyor.
+            </Text>
           )}
         </View>
       </ScrollView>
@@ -560,7 +673,104 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     fontSize: 16
-  }
+  },
+  section: {
+    padding: 16,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  addReviewButton: {
+    backgroundColor: '#ff6b00',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+  },
+  addReviewButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  reviewForm: {
+    backgroundColor: '#f9f9f9',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  reviewFormLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  starButton: {
+    marginRight: 8,
+  },
+  reviewInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    height: 100,
+    textAlignVertical: 'top',
+    marginBottom: 16,
+  },
+  submitReviewButton: {
+    backgroundColor: '#ff6b00',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  submitReviewButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  reviewItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingVertical: 12,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  reviewerName: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  reviewRating: {
+    flexDirection: 'row',
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: '#999',
+    marginBottom: 8,
+  },
+  reviewComment: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  noReviewsText: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginVertical: 16,
+  },
 });
 
 export default ProductDetailScreen; 

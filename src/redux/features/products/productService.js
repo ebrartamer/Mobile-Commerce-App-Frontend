@@ -41,12 +41,42 @@ const searchProducts = async (searchQuery) => {
   }
 };
 
+// Tüm markaları getir
+const getBrands = async () => {
+  try {
+    const response = await api.get('/management/brands');
+    return response.data;
+  } catch (error) {
+    const message = 
+      error.response?.data?.message ||
+      error.message ||
+      'Markalar alınırken bir hata oluştu';
+    throw new Error(message);
+  }
+};
+
+// Ürüne yorum ekle
+const addProductReview = async (productId, reviewData) => {
+  try {
+    const response = await api.post(`/products/${productId}/reviews`, reviewData);
+    return response.data;
+  } catch (error) {
+    const message = 
+      error.response?.data?.message ||
+      error.message ||
+      'Yorum eklenirken bir hata oluştu';
+    throw new Error(message);
+  }
+};
+
 const productService = {
     getProducts,
     getFeaturedProducts,
     getProductById,
     getProductsByCategory,
-    searchProducts
+    searchProducts,
+    getBrands,
+    addProductReview
 };
 
 export default productService;

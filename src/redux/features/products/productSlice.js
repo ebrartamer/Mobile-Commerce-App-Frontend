@@ -14,7 +14,8 @@ const initialState = {
         page: 1,
         pages: 1,
         totalProducts: 0
-    }
+    },
+    brands: []
 };
 
 // Tüm ürünleri getir
@@ -75,6 +76,32 @@ export const searchProducts = createAsyncThunk(
     async (searchQuery, thunkAPI) => {
         try {
             return await productService.searchProducts(searchQuery);
+        } catch (error) {
+            const message = error.response?.data?.message || error.message;
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
+// Markaları getir
+export const getBrands = createAsyncThunk(
+    'products/getBrands',
+    async (_, thunkAPI) => {
+        try {
+            return await productService.getBrands();
+        } catch (error) {
+            const message = error.response?.data?.message || error.message;
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
+// Ürüne yorum ekle
+export const addProductReview = createAsyncThunk(
+    'products/addReview',
+    async ({ productId, reviewData }, thunkAPI) => {
+        try {
+            return await productService.addProductReview(productId, reviewData);
         } catch (error) {
             const message = error.response?.data?.message || error.message;
             return thunkAPI.rejectWithValue(message);
@@ -177,6 +204,33 @@ const productSlice = createSlice({
                 state.products = action.payload;
             })
             .addCase(searchProducts.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            // Markaları getir
+            .addCase(getBrands.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(getBrands.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.brands = action.payload;
+            })
+            .addCase(getBrands.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            // Ürüne yorum ekle
+            .addCase(addProductReview.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(addProductReview.fulfilled, (state) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+            })
+            .addCase(addProductReview.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;
