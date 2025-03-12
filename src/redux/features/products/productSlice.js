@@ -4,11 +4,17 @@ import productService from './productService';
 const initialState = {
     products: [],
     featuredProducts: [],
+    categoryProducts: [],
     selectedProduct: null,
     isLoading: false,
     isSuccess: false,
     isError: false,
-    message: ''
+    message: '',
+    pagination: {
+        page: 1,
+        pages: 1,
+        totalProducts: 0
+    }
 };
 
 // Tüm ürünleri getir
@@ -50,6 +56,19 @@ export const getProductDetails = createAsyncThunk(
     }
 );
 
+// Kategoriye göre ürünleri getir
+export const getProductsByCategory = createAsyncThunk(
+    'products/getByCategory',
+    async ({ categoryName, params = {} }, thunkAPI) => {
+        try {
+            return await productService.getProductsByCategory(categoryName, params);
+        } catch (error) {
+            const message = error.response?.data?.message || error.message;
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
 const productSlice = createSlice({
     name: 'products',
     initialState,
@@ -62,6 +81,9 @@ const productSlice = createSlice({
         },
         clearSelectedProduct: (state) => {
             state.selectedProduct = null;
+        },
+        clearCategoryProducts: (state) => {
+            state.categoryProducts = [];
         }
     },
     extraReducers: (builder) => {
@@ -74,6 +96,11 @@ const productSlice = createSlice({
                 state.isLoading = false;
                 state.isSuccess = true;
                 state.products = action.payload.products;
+                state.pagination = {
+                    page: action.payload.page,
+                    pages: action.payload.pages,
+                    totalProducts: action.payload.totalProducts
+                };
             })
             .addCase(getProducts.rejected, (state, action) => {
                 state.isLoading = false;
@@ -107,9 +134,28 @@ const productSlice = createSlice({
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;
+            })
+            // Kategoriye göre ürünler
+            .addCase(getProductsByCategory.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(getProductsByCategory.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.categoryProducts = action.payload.products;
+                state.pagination = {
+                    page: action.payload.page,
+                    pages: action.payload.pages,
+                    totalProducts: action.payload.totalProducts
+                };
+            })
+            .addCase(getProductsByCategory.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
             });
     }
 });
 
-export const { reset, clearSelectedProduct } = productSlice.actions;
+export const { reset, clearSelectedProduct, clearCategoryProducts } = productSlice.actions;
 export default productSlice.reducer; 

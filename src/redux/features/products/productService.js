@@ -21,10 +21,17 @@ const getProductById = async (id) => {
     return response.data;
 };
 
+// Kategoriye göre ürünleri getir
+const getProductsByCategory = async (categoryName, params = {}) => {
+    const response = await axios.get(`${API_URL}category/${categoryName}`, { params });
+    return response.data;
+};
+
 const productService = {
     getProducts,
     getFeaturedProducts,
-    getProductById
+    getProductById,
+    getProductsByCategory
 };
 
 export default productService;

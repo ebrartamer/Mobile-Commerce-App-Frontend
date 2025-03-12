@@ -86,7 +86,10 @@ const HomeScreen = ({ navigation }) => {
     };
     
     const handleCategoryPress = (category) => {
-        console.log('Seçilen kategori:', category.name);
+        navigation.navigate('CategoryProducts', { 
+            categoryId: category._id, 
+            categoryName: category.name 
+        });
     };
     
     return (
