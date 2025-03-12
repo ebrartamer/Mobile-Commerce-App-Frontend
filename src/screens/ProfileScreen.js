@@ -42,7 +42,7 @@ const ProfileScreen = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={styles.safeArea} edges={['right', 'left']}>
             <View style={styles.container}>
                 <View style={styles.profileHeader}>
                     <View style={styles.avatarContainer}>
@@ -150,7 +150,6 @@ const styles = StyleSheet.create({
     },
     profileHeader: {
         alignItems: 'center',
-        marginVertical: 24,
         paddingBottom: 24,
         borderBottomWidth: 1,
         borderBottomColor: '#f0f0f0'

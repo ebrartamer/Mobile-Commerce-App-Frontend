@@ -74,7 +74,7 @@ const CategoriesScreen = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['right', 'left']}>
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Kategoriler</Text>
             </View>

@@ -81,7 +81,7 @@ const CartScreen = ({ navigation }) => {
     };
 
     const renderItem = ({ item }) => (
-        <View style={styles.cartItem}>
+        <View style={styles.cartItem} >
             <Image
                 source={{ uri: item.image }}
                 style={styles.itemImage}
@@ -162,7 +162,7 @@ const CartScreen = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['right', 'left']}>
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Sepetim</Text>
                 {cart && cart.items && cart.items.length > 0 && (
