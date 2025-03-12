@@ -69,6 +69,19 @@ export const getProductsByCategory = createAsyncThunk(
     }
 );
 
+// Ürün arama
+export const searchProducts = createAsyncThunk(
+    'products/search',
+    async (searchQuery, thunkAPI) => {
+        try {
+            return await productService.searchProducts(searchQuery);
+        } catch (error) {
+            const message = error.response?.data?.message || error.message;
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
 const productSlice = createSlice({
     name: 'products',
     initialState,
@@ -150,6 +163,20 @@ const productSlice = createSlice({
                 };
             })
             .addCase(getProductsByCategory.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            // Ürün arama
+            .addCase(searchProducts.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(searchProducts.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.products = action.payload;
+            })
+            .addCase(searchProducts.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;

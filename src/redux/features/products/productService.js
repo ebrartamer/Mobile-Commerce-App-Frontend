@@ -27,11 +27,26 @@ const getProductsByCategory = async (categoryName, params = {}) => {
     return response.data;
 };
 
+// Ürün arama
+const searchProducts = async (searchQuery) => {
+  try {
+    const response = await api.get(`/products/search?query=${encodeURIComponent(searchQuery)}`);
+    return response.data;
+  } catch (error) {
+    const message = 
+      error.response?.data?.message ||
+      error.message ||
+      'Ürünler aranırken bir hata oluştu';
+    throw new Error(message);
+  }
+};
+
 const productService = {
     getProducts,
     getFeaturedProducts,
     getProductById,
-    getProductsByCategory
+    getProductsByCategory,
+    searchProducts
 };
 
 export default productService;

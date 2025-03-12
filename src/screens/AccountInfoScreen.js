@@ -21,7 +21,7 @@ const AccountInfoScreen = ({ navigation }) => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        phone: '',
+        phoneNumber: '',
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
@@ -37,7 +37,7 @@ const AccountInfoScreen = ({ navigation }) => {
                 ...formData,
                 name: user.name || '',
                 email: user.email || '',
-                phone: user.phone || ''
+                phoneNumber: user.phoneNumber || ''
             });
         }
     }, [user]);
@@ -59,8 +59,8 @@ const AccountInfoScreen = ({ navigation }) => {
             isValid = false;
         }
 
-        if (formData.phone && !/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
-            formErrors.phone = 'Geçerli bir telefon numarası giriniz';
+        if (formData.phoneNumber && !/^\d{10}$/.test(formData.phoneNumber.replace(/\D/g, ''))) {
+            formErrors.phoneNumber = 'Geçerli bir telefon numarası giriniz';
             isValid = false;
         }
 
@@ -96,12 +96,12 @@ const AccountInfoScreen = ({ navigation }) => {
         const updateData = {
             name: formData.name,
             email: formData.email,
-            phone: formData.phone
+            phoneNumber: formData.phoneNumber
         };
 
         if (isChangingPassword) {
+            updateData.password = formData.newPassword;
             updateData.currentPassword = formData.currentPassword;
-            updateData.newPassword = formData.newPassword;
         }
 
         dispatch(updateProfile(updateData))
@@ -129,7 +129,7 @@ const AccountInfoScreen = ({ navigation }) => {
             ...formData,
             name: user.name || '',
             email: user.email || '',
-            phone: user.phone || '',
+            phoneNumber: user.phoneNumber || '',
             currentPassword: '',
             newPassword: '',
             confirmPassword: ''
@@ -204,15 +204,15 @@ const AccountInfoScreen = ({ navigation }) => {
                             style={[
                                 styles.input,
                                 !isEditing && styles.disabledInput,
-                                errors.phone && styles.inputError
+                                errors.phoneNumber && styles.inputError
                             ]}
-                            value={formData.phone}
-                            onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                            value={formData.phoneNumber}
+                            onChangeText={(text) => setFormData({ ...formData, phoneNumber: text })}
                             placeholder="Telefon"
                             keyboardType="phone-pad"
                             editable={isEditing}
                         />
-                        {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+                        {errors.phoneNumber && <Text style={styles.errorText}>{errors.phoneNumber}</Text>}
                     </View>
                 </View>
 
@@ -264,7 +264,7 @@ const AccountInfoScreen = ({ navigation }) => {
                                 </View>
 
                                 <View style={styles.formGroup}>
-                                    <Text style={styles.label}>Yeni Şifre (Tekrar)</Text>
+                                    <Text style={styles.label}>Şifre Tekrar</Text>
                                     <TextInput
                                         style={[
                                             styles.input,
@@ -272,7 +272,7 @@ const AccountInfoScreen = ({ navigation }) => {
                                         ]}
                                         value={formData.confirmPassword}
                                         onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
-                                        placeholder="Yeni Şifre (Tekrar)"
+                                        placeholder="Şifre Tekrar"
                                         secureTextEntry
                                     />
                                     {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
@@ -281,29 +281,29 @@ const AccountInfoScreen = ({ navigation }) => {
                         )}
                     </View>
                 )}
-            </ScrollView>
 
-            {isEditing && (
-                <View style={styles.footer}>
-                    <TouchableOpacity
-                        style={styles.cancelButton}
-                        onPress={handleCancel}
-                    >
-                        <Text style={styles.cancelButtonText}>İptal</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.saveButton}
-                        onPress={handleSave}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <ActivityIndicator size="small" color="#fff" />
-                        ) : (
-                            <Text style={styles.saveButtonText}>Kaydet</Text>
-                        )}
-                    </TouchableOpacity>
-                </View>
-            )}
+                {isEditing && (
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                            style={[styles.button, styles.cancelButton]}
+                            onPress={handleCancel}
+                        >
+                            <Text style={styles.cancelButtonText}>İptal</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.button, styles.saveButton]}
+                            onPress={handleSave}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <Text style={styles.saveButtonText}>Kaydet</Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                )}
+            </ScrollView>
         </SafeAreaView>
     );
 };
@@ -311,119 +311,128 @@ const AccountInfoScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#fff'
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        borderBottomColor: '#f0f0f0'
     },
     backButton: {
-        padding: 8,
+        padding: 8
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
-        flex: 1,
-        textAlign: 'center',
+        color: '#333'
     },
     placeholder: {
-        width: 36,
+        width: 36
     },
     content: {
         flex: 1,
+        padding: 16
     },
     section: {
+        backgroundColor: '#fff',
+        borderRadius: 8,
         padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2
     },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 16,
+        paddingBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0'
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#333'
     },
     editButton: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'center'
     },
     editButtonText: {
         fontSize: 14,
         color: '#ff6b00',
-        marginLeft: 4,
+        marginLeft: 4
     },
     formGroup: {
-        marginBottom: 16,
+        marginBottom: 16
     },
     label: {
         fontSize: 14,
-        color: '#666',
-        marginBottom: 8,
+        fontWeight: '500',
+        color: '#333',
+        marginBottom: 8
     },
     input: {
         borderWidth: 1,
         borderColor: '#ddd',
         borderRadius: 8,
-        padding: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
         fontSize: 16,
-        backgroundColor: '#fff',
+        color: '#333',
+        backgroundColor: '#fff'
     },
     disabledInput: {
         backgroundColor: '#f9f9f9',
-        color: '#666',
+        color: '#666'
     },
     inputError: {
-        borderColor: '#F44336',
+        borderColor: '#F44336'
     },
     errorText: {
         color: '#F44336',
         fontSize: 12,
-        marginTop: 4,
+        marginTop: 4
     },
-    footer: {
+    buttonContainer: {
         flexDirection: 'row',
-        padding: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#eee',
-        backgroundColor: '#fff',
+        justifyContent: 'space-between',
+        marginBottom: 24
+    },
+    button: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: 'center'
     },
     cancelButton: {
-        flex: 1,
-        padding: 14,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        alignItems: 'center',
-        marginRight: 8,
+        backgroundColor: '#f5f5f5',
+        marginRight: 8
+    },
+    saveButton: {
+        backgroundColor: '#ff6b00',
+        marginLeft: 8
     },
     cancelButtonText: {
         color: '#666',
-        fontWeight: '600',
-        fontSize: 16,
-    },
-    saveButton: {
-        flex: 1,
-        padding: 14,
-        backgroundColor: '#ff6b00',
-        borderRadius: 8,
-        alignItems: 'center',
-        marginLeft: 8,
+        fontWeight: 'bold',
+        fontSize: 16
     },
     saveButtonText: {
         color: '#fff',
-        fontWeight: '600',
-        fontSize: 16,
-    },
+        fontWeight: 'bold',
+        fontSize: 16
+    }
 });
 
 export default AccountInfoScreen; 

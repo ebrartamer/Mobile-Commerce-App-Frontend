@@ -8,6 +8,8 @@ import MyOrdersScreen from '../screens/MyOrdersScreen';
 import OrderDetailsScreen from '../screens/OrderDetailsScreen';
 import AccountInfoScreen from '../screens/AccountInfoScreen';
 import MyAddressesScreen from '../screens/MyAddressesScreen';
+import FavoritesScreen from '../screens/FavoritesScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 
 const Stack = createStackNavigator();
 
@@ -26,6 +28,8 @@ const MainNavigator = () => {
       <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
       <Stack.Screen name="AccountInfo" component={AccountInfoScreen} />
       <Stack.Screen name="MyAddresses" component={MyAddressesScreen} />
+      <Stack.Screen name="Favorites" component={FavoritesScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
       {/* Diğer ana uygulama ekranları buraya eklenecek */}
     </Stack.Navigator>
   );

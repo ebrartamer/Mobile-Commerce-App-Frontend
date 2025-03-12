@@ -12,6 +12,8 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { getFavorites, removeFromFavorites } from '../redux/features/favorites/favoritesSlice';
 import { Ionicons } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FavoritesScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -62,7 +64,18 @@ const FavoritesScreen = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Icon name="arrow-left" size={20} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Favorilerim</Text>
+        <View style={styles.placeholder} />
+      </View>
+      
       {favorites.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="heart-outline" size={64} color="#ccc" />
@@ -72,6 +85,7 @@ const FavoritesScreen = ({ navigation }) => {
           </Text>
         </View>
       ) : (
+        
         <FlatList
           data={favorites}
           renderItem={renderItem}
@@ -86,7 +100,8 @@ const FavoritesScreen = ({ navigation }) => {
           }
         />
       )}
-    </View>
+        
+    </SafeAreaView>
   );
 };
 
@@ -94,6 +109,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  placeholder: {
+    width: 36,
   },
   centered: {
     flex: 1,

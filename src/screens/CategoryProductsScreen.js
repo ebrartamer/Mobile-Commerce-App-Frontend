@@ -19,19 +19,17 @@ const numColumns = 2;
 const cardWidth = width / numColumns - 24;
 
 const CategoryProductsScreen = ({ route, navigation }) => {
-    const { categoryId, categoryName } = route.params;
+    const { categoryId, categoryName, isSearchResult = false } = route.params;
     const dispatch = useDispatch();
-    const { categoryProducts, isLoading, isError, message, pagination } = useSelector((state) => state.products);
+    const { products, isLoading, error } = useSelector((state) => state.products);
     const [page, setPage] = useState(1);
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
-        loadProducts();
-
-        return () => {
-            dispatch(clearCategoryProducts());
-        };
-    }, [dispatch, categoryName]);
+        if (!isSearchResult && categoryId) {
+            dispatch(getProductsByCategory(categoryId));
+        }
+    }, [dispatch, categoryId, isSearchResult]);
 
     const loadProducts = (pageNum = 1) => {
         dispatch(getProductsByCategory({
@@ -81,30 +79,8 @@ const CategoryProductsScreen = ({ route, navigation }) => {
         </View>
     );
 
-    if (isLoading && page === 1) {
-        return (
-            <View style={styles.centered}>
-                <ActivityIndicator size="large" color="#ff6b00" />
-            </View>
-        );
-    }
-
-    if (isError) {
-        return (
-            <View style={styles.centered}>
-                <Text style={styles.errorText}>{message}</Text>
-                <TouchableOpacity
-                    style={styles.retryButton}
-                    onPress={() => loadProducts()}
-                >
-                    <Text style={styles.retryText}>Tekrar Dene</Text>
-                </TouchableOpacity>
-            </View>
-        );
-    }
-
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
                 <TouchableOpacity
                     style={styles.backButton}
@@ -116,30 +92,62 @@ const CategoryProductsScreen = ({ route, navigation }) => {
                 <View style={styles.placeholder} />
             </View>
 
-            {categoryProducts.length === 0 ? (
+            {isLoading ? (
                 <View style={styles.centered}>
-                    <Text style={styles.noProductsText}>Bu kategoride ürün bulunamadı.</Text>
+                    <ActivityIndicator size="large" color="#ff6b00" />
+                </View>
+            ) : error ? (
+                <View style={styles.centered}>
+                    <Text style={styles.errorText}>{error}</Text>
+                    <TouchableOpacity
+                        style={styles.retryButton}
+                        onPress={() => {
+                            if (!isSearchResult) {
+                                dispatch(getProductsByCategory(categoryId));
+                            }
+                        }}
+                    >
+                        <Text style={styles.retryText}>Tekrar Dene</Text>
+                    </TouchableOpacity>
                 </View>
             ) : (
-                <FlatList
-                    data={categoryProducts}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item._id}
-                    numColumns={numColumns}
-                    contentContainerStyle={styles.listContainer}
-                    onRefresh={handleRefresh}
-                    refreshing={refreshing}
-                    onEndReached={handleLoadMore}
-                    onEndReachedThreshold={0.5}
-                    ListFooterComponent={renderFooter}
-                />
+                <View style={styles.container}>
+                    {products.length === 0 ? (
+                        <View style={styles.emptyContainer}>
+                            <Icon name="search" size={64} color="#ccc" />
+                            <Text style={styles.emptyText}>
+                                {isSearchResult 
+                                    ? 'Arama sonucu bulunamadı' 
+                                    : 'Bu kategoride ürün bulunamadı'}
+                            </Text>
+                            <Text style={styles.emptySubText}>
+                                {isSearchResult 
+                                    ? 'Farklı anahtar kelimelerle tekrar arayabilirsiniz' 
+                                    : 'Daha sonra tekrar kontrol edin'}
+                            </Text>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={products}
+                            renderItem={renderItem}
+                            keyExtractor={(item) => item._id}
+                            numColumns={numColumns}
+                            contentContainerStyle={styles.listContainer}
+                            onRefresh={handleRefresh}
+                            refreshing={refreshing}
+                            onEndReached={handleLoadMore}
+                            onEndReachedThreshold={0.5}
+                            ListFooterComponent={renderFooter}
+                        />
+                    )}
+                </View>
             )}
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    safeArea: {
         flex: 1,
         backgroundColor: '#fff',
     },
@@ -199,6 +207,25 @@ const styles = StyleSheet.create({
     footerLoader: {
         marginVertical: 16,
         alignItems: 'center',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    emptyText: {
+        fontSize: 16,
+        color: '#666',
+        marginBottom: 16,
+    },
+    emptySubText: {
+        fontSize: 14,
+        color: '#999',
+    },
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
     },
 });
 

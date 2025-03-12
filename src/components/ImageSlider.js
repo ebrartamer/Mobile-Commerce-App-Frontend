@@ -55,18 +55,7 @@ const ImageSlider = ({ slides, onSlidePress }) => {
                     </TouchableOpacity>
                 ))}
             </ScrollView>
-            
-            <View style={styles.pagination}>
-                {slides.map((_, index) => (
-                    <View
-                        key={index}
-                        style={[
-                            styles.paginationDot,
-                            index === activeIndex ? styles.paginationDotActive : null
-                        ]}
-                    />
-                ))}
-            </View>
+        
         </View>
     );
 };

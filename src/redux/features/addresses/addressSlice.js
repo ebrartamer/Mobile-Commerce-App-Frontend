@@ -40,7 +40,7 @@ export const updateAddress = createAsyncThunk(
     'addresses/update',
     async ({ addressId, addressData }, thunkAPI) => {
         try {
-            return await addressService.updateAddress(addressId, addressData);
+            return await addressService.updateAddress({ addressId, addressData });
         } catch (error) {
             const message = error.response?.data?.message || error.message;
             return thunkAPI.rejectWithValue(message);
@@ -95,7 +95,7 @@ const addressSlice = createSlice({
             .addCase(addAddress.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.isSuccess = true;
-                state.addresses.push(action.payload);
+                state.addresses = action.payload;
             })
             .addCase(addAddress.rejected, (state, action) => {
                 state.isLoading = false;
@@ -109,10 +109,7 @@ const addressSlice = createSlice({
             .addCase(updateAddress.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.isSuccess = true;
-                const index = state.addresses.findIndex(address => address._id === action.payload._id);
-                if (index !== -1) {
-                    state.addresses[index] = action.payload;
-                }
+                state.addresses = action.payload;
             })
             .addCase(updateAddress.rejected, (state, action) => {
                 state.isLoading = false;

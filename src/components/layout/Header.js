@@ -1,11 +1,31 @@
-import React from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch } from 'react-redux';
+import { searchProducts } from '../../redux/features/products/productSlice';
 
 const Header = () => {
     const navigation = useNavigation();
+    const dispatch = useDispatch();
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearch = () => {
+        if (searchQuery.trim()) {
+            dispatch(searchProducts(searchQuery))
+                .unwrap()
+                .then(() => {
+                    navigation.navigate('CategoryProducts', { 
+                        categoryName: `Arama: ${searchQuery}`,
+                        isSearchResult: true
+                    });
+                })
+                .catch(error => {
+                    Alert.alert('Hata', error || 'Arama sırasında bir hata oluştu');
+                });
+        }
+    };
 
     return (
         <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -14,8 +34,12 @@ const Header = () => {
                     <View style={styles.searchContainer}>
                         <Icon name="search" size={18} color="#ff6b00" style={styles.searchIcon} />
                         <TextInput
-                            placeholder="Search"
+                            placeholder="Ürün, kategori ara..."
                             style={styles.searchInput}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            onSubmitEditing={handleSearch}
+                            returnKeyType="search"
                         />
                     </View>
                 </View>
@@ -23,16 +47,16 @@ const Header = () => {
                 <View style={styles.rightSection}>
                     <TouchableOpacity 
                         style={styles.iconButton}
-                        onPress={() => navigation.navigate('Favoriler')}
+                        onPress={() => navigation.navigate('Notifications')}
                     >
                         <Icon name="bell-o" size={24} color="#ff6b00" />
                     </TouchableOpacity>
 
                     <TouchableOpacity 
                         style={styles.iconButton}
-                        onPress={() => navigation.navigate('Profil')}
+                        onPress={() => navigation.navigate('Favorites')}
                     >
-                            <Icon name="envelope-o" size={24} color="#ff6b00" />
+                        <Icon name="heart-o" size={24} color="#ff6b00" />
                     </TouchableOpacity>
                 </View>
             </View>

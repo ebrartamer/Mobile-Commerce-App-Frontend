@@ -41,6 +41,14 @@ const ProfileScreen = ({ navigation }) => {
         navigation.navigate('AccountInfo');
     };
 
+    const navigateToFavorites = () => {
+        navigation.navigate('Favorites');
+    };
+
+    const navigateToNotifications = () => {
+        navigation.navigate('Notifications');
+    };
+
     return (
         <SafeAreaView style={styles.safeArea} edges={['right', 'left']}>
             <View style={styles.container}>
@@ -95,7 +103,10 @@ const ProfileScreen = ({ navigation }) => {
                         <Icon name="chevron-right" size={16} color="#999" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.menuItem}>
+                    <TouchableOpacity 
+                        style={styles.menuItem}
+                        onPress={navigateToFavorites}
+                    >
                         <View style={[styles.iconContainer, { backgroundColor: '#FFEBEE' }]}>
                             <Icon name="heart" size={20} color="#F44336" />
                         </View>
@@ -106,7 +117,10 @@ const ProfileScreen = ({ navigation }) => {
                         <Icon name="chevron-right" size={16} color="#999" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.menuItem}>
+                    <TouchableOpacity 
+                        style={styles.menuItem}
+                        onPress={navigateToNotifications}
+                    >
                         <View style={[styles.iconContainer, { backgroundColor: '#E0F7FA' }]}>
                             <Icon name="bell" size={20} color="#00BCD4" />
                         </View>

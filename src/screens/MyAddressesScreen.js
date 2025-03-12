@@ -254,7 +254,7 @@ const MyAddressesScreen = ({ navigation }) => {
                     style={[styles.input, errors.phoneNumber && styles.inputError]}
                     value={formData.phoneNumber}
                     onChangeText={(text) => setFormData({ ...formData, phoneNumber: text })}
-                    placeholder="05XX XXX XX XX"
+                    placeholder="5XX XXX XX XX"
                     keyboardType="phone-pad"
                 />
                 {errors.phoneNumber && <Text style={styles.errorText}>{errors.phoneNumber}</Text>}
@@ -311,52 +311,34 @@ const MyAddressesScreen = ({ navigation }) => {
                     style={styles.checkbox}
                     onPress={() => setFormData({ ...formData, isDefault: !formData.isDefault })}
                 >
-                    <Icon
-                        name={formData.isDefault ? 'check-square-o' : 'square-o'}
-                        size={20}
-                        color={formData.isDefault ? '#ff6b00' : '#666'}
-                    />
+                    {formData.isDefault ? (
+                        <Icon name="check-square-o" size={20} color="#ff6b00" />
+                    ) : (
+                        <Icon name="square-o" size={20} color="#999" />
+                    )}
                 </TouchableOpacity>
                 <Text style={styles.checkboxLabel}>Varsayılan adres olarak ayarla</Text>
             </View>
 
-            <View style={styles.formButtons}>
+            <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                    style={styles.cancelButton}
+                    style={[styles.button, styles.cancelButton]}
                     onPress={handleCancel}
                 >
                     <Text style={styles.cancelButtonText}>İptal</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={styles.saveButton}
+                    style={[styles.button, styles.saveButton]}
                     onPress={handleSaveAddress}
-                    disabled={isLoading}
                 >
-                    {isLoading ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                        <Text style={styles.saveButtonText}>Kaydet</Text>
-                    )}
+                    <Text style={styles.saveButtonText}>Kaydet</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>
     );
 
-    const renderEmptyAddresses = () => (
-        <View style={styles.emptyContainer}>
-            <Icon name="map-marker" size={60} color="#ccc" />
-            <Text style={styles.emptyText}>Henüz adres eklenmemiş</Text>
-            <TouchableOpacity
-                style={styles.addButton}
-                onPress={handleAddAddress}
-            >
-                <Text style={styles.addButtonText}>Adres Ekle</Text>
-            </TouchableOpacity>
-        </View>
-    );
-
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
                 <TouchableOpacity
                     style={styles.backButton}
@@ -365,236 +347,266 @@ const MyAddressesScreen = ({ navigation }) => {
                     <Icon name="arrow-left" size={20} color="#333" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Adreslerim</Text>
-                {!isAddingAddress && !isEditingAddress && (
-                    <TouchableOpacity
-                        style={styles.addAddressButton}
-                        onPress={handleAddAddress}
-                    >
-                        <Icon name="plus" size={20} color="#ff6b00" />
-                    </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={handleAddAddress}
+                    disabled={isAddingAddress || isEditingAddress}
+                >
+                    <Icon name="plus" size={20} color={isAddingAddress || isEditingAddress ? "#ccc" : "#ff6b00"} />
+                </TouchableOpacity>
             </View>
 
-            {isLoading && !addresses.length ? (
+            {isLoading ? (
                 <View style={styles.centered}>
                     <ActivityIndicator size="large" color="#ff6b00" />
                 </View>
             ) : isAddingAddress || isEditingAddress ? (
                 renderAddressForm()
             ) : (
-                <FlatList
-                    data={addresses}
-                    renderItem={renderAddressItem}
-                    keyExtractor={(item) => item._id}
-                    contentContainerStyle={styles.listContainer}
-                    ListEmptyComponent={renderEmptyAddresses}
-                />
+                <View style={styles.container}>
+                    {addresses.length === 0 ? (
+                        <View style={styles.emptyContainer}>
+                            <Icon name="map-marker" size={64} color="#ccc" />
+                            <Text style={styles.emptyText}>Henüz adres eklemediniz</Text>
+                            <Text style={styles.emptySubText}>
+                                Adres eklemek için sağ üstteki + butonuna tıklayın
+                            </Text>
+                            <TouchableOpacity
+                                style={styles.addAddressButton}
+                                onPress={handleAddAddress}
+                            >
+                                <Text style={styles.addAddressButtonText}>Adres Ekle</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={addresses}
+                            renderItem={renderAddressItem}
+                            keyExtractor={(item) => item._id}
+                            contentContainerStyle={styles.listContainer}
+                        />
+                    )}
+                </View>
             )}
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    safeArea: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#fff'
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        borderBottomColor: '#f0f0f0'
     },
     backButton: {
-        padding: 8,
+        padding: 8
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#333'
+    },
+    addButton: {
+        padding: 8
+    },
+    container: {
         flex: 1,
-        textAlign: 'center',
+        padding: 16
     },
-    addAddressButton: {
-        padding: 8,
-    },
-    listContainer: {
-        flexGrow: 1,
-        padding: 16,
-    },
-    addressItem: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        marginBottom: 16,
-        padding: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    addressHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 12,
-        paddingBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
-    },
-    addressTitleContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    addressTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    defaultBadge: {
-        backgroundColor: '#4CAF50',
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 4,
-        marginLeft: 8,
-    },
-    defaultText: {
-        fontSize: 10,
-        color: '#fff',
-        fontWeight: '600',
-    },
-    addressActions: {
-        flexDirection: 'row',
-    },
-    editButton: {
-        padding: 4,
-        marginRight: 8,
-    },
-    deleteButton: {
-        padding: 4,
-    },
-    addressContent: {
-        marginBottom: 8,
-    },
-    addressName: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 4,
-    },
-    addressPhone: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 8,
-    },
-    addressText: {
-        fontSize: 14,
-        color: '#333',
-        lineHeight: 20,
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        padding: 20
     },
     emptyText: {
-        fontSize: 16,
+        fontSize: 18,
+        fontWeight: '500',
         color: '#666',
-        marginTop: 16,
-        marginBottom: 24,
+        marginTop: 20,
+        marginBottom: 10
     },
-    addButton: {
+    emptySubText: {
+        fontSize: 14,
+        color: '#999',
+        textAlign: 'center',
+        marginBottom: 20
+    },
+    addAddressButton: {
         backgroundColor: '#ff6b00',
-        paddingHorizontal: 24,
         paddingVertical: 12,
-        borderRadius: 8,
+        paddingHorizontal: 24,
+        borderRadius: 8
     },
-    addButtonText: {
+    addAddressButtonText: {
         color: '#fff',
-        fontWeight: '600',
-        fontSize: 16,
+        fontWeight: 'bold',
+        fontSize: 16
     },
-    centered: {
-        flex: 1,
-        justifyContent: 'center',
+    listContainer: {
+        paddingBottom: 20
+    },
+    addressItem: {
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        padding: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2
+    },
+    addressHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
+        marginBottom: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+        paddingBottom: 8
+    },
+    addressTitleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center'
+    },
+    addressTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+        marginRight: 8
+    },
+    defaultBadge: {
+        backgroundColor: '#E8F5E9',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 4
+    },
+    defaultText: {
+        fontSize: 12,
+        color: '#4CAF50',
+        fontWeight: '500'
+    },
+    addressActions: {
+        flexDirection: 'row'
+    },
+    editButton: {
+        padding: 8,
+        marginRight: 8
+    },
+    deleteButton: {
+        padding: 8
+    },
+    addressContent: {
+        marginTop: 4
+    },
+    addressName: {
+        fontSize: 15,
+        fontWeight: '500',
+        color: '#333',
+        marginBottom: 4
+    },
+    addressPhone: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 4
+    },
+    addressText: {
+        fontSize: 14,
+        color: '#666',
+        lineHeight: 20
     },
     formContainer: {
         flex: 1,
-        padding: 16,
+        padding: 16
     },
     formGroup: {
-        marginBottom: 16,
+        marginBottom: 16
     },
     label: {
         fontSize: 14,
-        color: '#666',
-        marginBottom: 8,
+        fontWeight: '500',
+        color: '#333',
+        marginBottom: 8
     },
     input: {
         borderWidth: 1,
         borderColor: '#ddd',
         borderRadius: 8,
-        padding: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
         fontSize: 16,
+        color: '#333',
+        backgroundColor: '#fff'
     },
     textArea: {
         height: 80,
-        textAlignVertical: 'top',
+        textAlignVertical: 'top'
     },
     inputError: {
-        borderColor: '#F44336',
+        borderColor: '#F44336'
     },
     errorText: {
         color: '#F44336',
         fontSize: 12,
-        marginTop: 4,
+        marginTop: 4
     },
     checkboxContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 24,
+        marginBottom: 24
     },
     checkbox: {
-        marginRight: 8,
+        marginRight: 8
     },
     checkboxLabel: {
         fontSize: 14,
-        color: '#333',
+        color: '#333'
     },
-    formButtons: {
+    buttonContainer: {
         flexDirection: 'row',
-        marginBottom: 24,
+        justifyContent: 'space-between',
+        marginBottom: 24
+    },
+    button: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: 'center'
     },
     cancelButton: {
-        flex: 1,
-        padding: 14,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        alignItems: 'center',
-        marginRight: 8,
+        backgroundColor: '#f5f5f5',
+        marginRight: 8
+    },
+    saveButton: {
+        backgroundColor: '#ff6b00',
+        marginLeft: 8
     },
     cancelButtonText: {
         color: '#666',
-        fontWeight: '600',
-        fontSize: 16,
-    },
-    saveButton: {
-        flex: 1,
-        padding: 14,
-        backgroundColor: '#ff6b00',
-        borderRadius: 8,
-        alignItems: 'center',
-        marginLeft: 8,
+        fontWeight: 'bold',
+        fontSize: 16
     },
     saveButtonText: {
         color: '#fff',
-        fontWeight: '600',
-        fontSize: 16,
-    },
+        fontWeight: 'bold',
+        fontSize: 16
+    }
 });
 
 export default MyAddressesScreen; 
