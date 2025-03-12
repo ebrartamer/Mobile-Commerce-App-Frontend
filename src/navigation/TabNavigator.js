@@ -4,11 +4,22 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import CategoriesScreen from '../screens/CategoriesScreen';
-import Header from '../components/layout/Header';
+import CartScreen from '../screens/CartScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
+import Header from '../components/layout/Header';
+import { useSelector } from 'react-redux';
+import { View, Text, StyleSheet } from 'react-native';
+
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
+  const { cart } = useSelector((state) => state.cart);
+  
+  const getCartItemCount = () => {
+    if (!cart || !cart.items) return 0;
+    return cart.totalItems;
+  };
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -36,7 +47,18 @@ const TabNavigator = () => {
               iconName = 'home';
           }
 
-          return <Icon name={iconName} size={size} color={color} />;
+          return (
+            <View>
+              <Icon name={iconName} size={size} color={color} />
+              {route.name === 'Sepet' && getCartItemCount() > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {getCartItemCount() > 99 ? '99+' : getCartItemCount()}
+                  </Text>
+                </View>
+              )}
+            </View>
+          );
         },
         tabBarActiveTintColor: '#ff6b00',
         tabBarInactiveTintColor: '#666',
@@ -59,16 +81,39 @@ const TabNavigator = () => {
         component={CategoriesScreen}
       />
       <Tab.Screen 
-        name="Profil" 
-        component={ProfileScreen}
+        name="Sepet" 
+        component={CartScreen}
       />
       <Tab.Screen 
         name="Favoriler" 
         component={FavoritesScreen}
       />
-      {/* Diğer tab ekranları eklenecek */}
+      <Tab.Screen 
+        name="Profil" 
+        component={ProfileScreen}
+      />
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  badge: {
+    position: 'absolute',
+    right: -6,
+    top: -4,
+    backgroundColor: '#ff3b30',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+    paddingHorizontal: 4,
+  },
+});
 
 export default TabNavigator; 

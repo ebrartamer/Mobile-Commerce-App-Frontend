@@ -4,6 +4,8 @@ import categoryReducer from './features/categories/categorySlice';
 import productReducer from './features/products/productSlice';
 import favoritesReducer from './features/favorites/favoritesSlice';
 import errorReducer from './features/error/errorSlice';
+import cartReducer from './features/cart/cartSlice';
+import orderReducer from './features/orders/orderSlice';
 
 // Redux store
 const store = configureStore({
@@ -12,7 +14,9 @@ const store = configureStore({
     categories: categoryReducer,
     products: productReducer,
     favorites: favoritesReducer,
-    error: errorReducer
+    error: errorReducer,
+    cart: cartReducer,
+    orders: orderReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

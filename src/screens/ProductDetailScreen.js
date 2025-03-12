@@ -9,13 +9,15 @@ import {
   Dimensions,
   Share,
   ActivityIndicator,
-  FlatList
+  FlatList,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProductDetails } from '../redux/features/products/productSlice';
 import { addToFavorites, removeFromFavorites, checkFavoriteStatus } from '../redux/features/favorites/favoritesSlice';
+import { addToCart } from '../redux/features/cart/cartSlice';
 
 const { width } = Dimensions.get('window');
 
@@ -51,17 +53,54 @@ const ProductDetailScreen = ({ route, navigation }) => {
   };
 
   const handleAddToCart = () => {
-    if (!selectedColor || !selectedSize) {
-      // TODO: Kullanıcıya uyarı göster
-      return;
+    if (selectedProduct.variants && selectedProduct.variants.length > 0) {
+      if (!selectedColor || !selectedSize) {
+        Alert.alert('Uyarı', 'Lütfen renk ve beden seçiniz.');
+        return;
+      }
+      
+      // Seçilen varyantın stok durumunu kontrol et
+      const variant = selectedProduct.variants.find(
+        v => v.color === selectedColor && v.size === selectedSize
+      );
+      
+      if (!variant || variant.stock < 1) {
+        Alert.alert('Uyarı', 'Seçilen ürün stokta bulunmamaktadır.');
+        return;
+      }
+      
+      dispatch(addToCart({
+        productId: productId,
+        quantity: 1,
+        color: selectedColor,
+        size: selectedSize
+      }))
+        .unwrap()
+        .then(() => {
+          Alert.alert('Başarılı', 'Ürün sepete eklendi.');
+        })
+        .catch((error) => {
+          Alert.alert('Hata', error || 'Ürün sepete eklenirken bir hata oluştu.');
+        });
+    } else {
+      // Varyant yoksa doğrudan ürünü ekle
+      if (selectedProduct.stock < 1) {
+        Alert.alert('Uyarı', 'Ürün stokta bulunmamaktadır.');
+        return;
+      }
+      
+      dispatch(addToCart({
+        productId: productId,
+        quantity: 1
+      }))
+        .unwrap()
+        .then(() => {
+          Alert.alert('Başarılı', 'Ürün sepete eklendi.');
+        })
+        .catch((error) => {
+          Alert.alert('Hata', error || 'Ürün sepete eklenirken bir hata oluştu.');
+        });
     }
-    // Sepete ekleme işlemi burada yapılacak
-    console.log('Ürün sepete eklendi', {
-      productId,
-      color: selectedColor,
-      size: selectedSize,
-      variant: selectedVariant
-    });
   };
 
   const handleFavorite = () => {
