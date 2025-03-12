@@ -78,11 +78,39 @@ const getUserProfile = async () => {
   }
 };
 
+// Kullanıcı profili güncelleme
+const updateProfile = async (userData) => {
+  try {
+    const response = await api.put('/users/profile', userData);
+    
+    // Kullanıcı bilgilerini güncelle
+    if (response.data) {
+      const updatedUser = {
+        _id: response.data._id,
+        name: response.data.name,
+        email: response.data.email,
+        phoneNumber: response.data.phoneNumber || '',
+      };
+      await storeUserData(updatedUser);
+      return updatedUser;
+    }
+    
+    return response.data;
+  } catch (error) {
+    const message = 
+      error.response?.data?.message ||
+      error.message ||
+      'Profil güncellenirken bir hata oluştu';
+    throw new Error(message);
+  }
+};
+
 const authService = {
   login,
   register,
   logout,
   getUserProfile,
+  updateProfile,
 };
 
 export default authService; 
